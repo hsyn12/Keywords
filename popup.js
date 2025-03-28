@@ -212,6 +212,7 @@ async function triggerContentUpdate() {
         if (chrome.runtime.lastError) {
             // Handle common errors gracefully (e.g., content script not ready yet)
             if (!chrome.runtime.lastError.message.includes("Receiving end does not exist") &&
+                !chrome.runtime.lastError.message.includes("message port closed") &&
                 !chrome.runtime.lastError.message.includes("Could not establish connection")) {
                 console.error('Error sending update to content script:', chrome.runtime.lastError.message);
             }
