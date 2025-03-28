@@ -70,10 +70,10 @@
       border: none;
       border-radius: 50%; /* Make it circular */
       cursor: pointer;
-      width: 20px;
-      height: 20px;
-      font-size: 12px;
-      line-height: 18px; /* Center the 'x' */
+      width: 25px;
+      height: 25px;
+      font-size: 14px;
+      line-height: 24px; /* Center the 'x' */
       padding: 0;
       text-align: center;
       flex-shrink: 0;
@@ -135,13 +135,14 @@
       border-radius: 3px;
       width: 100%;
     }
+    
   </style>
 </head>
 <body>
   <div class="container">
     <div class="keyword-input">
       <input type="text" id="keywordInput" placeholder="Enter keyword or regex pattern">
-      <button id="addKeyword">Add</button>
+      <button title="Add Keyword" id="addKeyword">Add</button>
     </div>
     
     <div class="keyword-list" id="keywordList">
@@ -151,7 +152,7 @@
     <div class="settings">
       <div class="color-picker">
         <label for="highlightColor">Highlight Color:</label>
-        <input type="color" id="highlightColor" value="#ffeb3b">
+        <input title="Change Highlight Color" type="color" id="highlightColor" value="#ffeb3b">
       </div>
       
       <div class="toggle-container">

@@ -133,7 +133,7 @@ function addKeywordToList(keyword) {
   // Add data attribute to easily find the item later
   item.dataset.keyword = keyword;
   item.innerHTML = `
-    <span class="keyword-text">${keyword}</span>
+    <span title="${keyword}" class="keyword-text">${keyword}</span>
     <div class="controls">
       <span class="keyword-count">--</span>
       <button class="remove-keyword" title="Remove keyword">&times;</button>
