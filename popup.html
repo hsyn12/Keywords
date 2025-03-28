@@ -6,12 +6,16 @@
     body {
       width: 300px;
       padding: 10px;
-      font-family: Arial, sans-serif;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-size: 14px;
     }
     .container {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
     }
     .keyword-input {
       display: flex;
@@ -23,15 +27,15 @@
     .keyword-list {
       max-height: 200px;
       overflow-y: auto;
+      background: #fff;
     }
     .keyword-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 5px;
-      background: #f5f5f5;
-      margin: 2px 0;
-      border-radius: 3px;
+      background: #f2f2f2;
+      font-size: 14px;
     }
     .settings {
       border-top: 1px solid #ccc;
@@ -47,6 +51,60 @@
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    input{
+      min-height: 23px;
+      min-width: 50px;
+      font-size: 15px;
+    }
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+    input[type="color"] {
+      width: 40px;
+      height: 40px;
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+    button {
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      min-height: 25px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .remove-button {
+      background-color: #dc3545;
+    }
+    .remove-button:hover {
+      background-color: #c82333;
+    }
+    .remove-button:focus {
+      outline: none;
+    }
+    .remove-button:active {
+      transform: scale(0.95);
+    }
+    .remove-button:focus-visible {
+      outline: 2px solid #0056b3;
+      outline-offset: 2px;
+    }
+
+    label {
+      font-size: 14px;
+    }
+    input[type="text"] {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      width: 100%;
     }
   </style>
 </head>

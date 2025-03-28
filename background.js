@@ -48,7 +48,6 @@ chrome.runtime.onInstalled.addListener(() => {
     }
   });
 
-  // Oturum deposunu temizle (isteğe bağlı, temiz bir başlangıç için)
   chrome.storage.session.remove(STORAGE_KEY);
 });
 
@@ -91,12 +90,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('No handler found for message type:', message.type);
 });
 
+// updateBadge fonksiyonunu storage kullanacak şekilde güncelle
 async function updateBadge(tabId) {
   if (!tabId) {
+    // Aktif sekmeyi bulup onun ID'sini kullanabiliriz ama onActivated zaten ID veriyor.
+    // Belki başlangıç durumu için?
     const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (activeTab && activeTab.id) {
       tabId = activeTab.id;
-    } else return;
+    } else return; // ID yoksa çık
+
   }
   const count = await getCount(tabId);
   try {
@@ -128,35 +131,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     removeCountFromStorage(tabId);
     
     // Delay the rehighlight message slightly to ensure content script is ready
-    setTimeout(async () => {
-      try {
-        const response = await new Promise((resolve, reject) => {
-          const messageTimeout = setTimeout(() => {
-            reject(new Error('Message timeout'));
-          }, 2000);
-
-          chrome.tabs.sendMessage(tabId, { type: 'REHIGHLIGHT_TAB' }, response => {
-            clearTimeout(messageTimeout);
-            const lastError = chrome.runtime.lastError;
-            
-            if (lastError) {
-              if (lastError.message.includes('receiving end does not exist') ||
-                  lastError.message.includes('context invalidated')) {
-                reject(new Error('Content script not ready'));
-              } else {
-                reject(lastError);
-              }
-            } else {
-              resolve(response);
-            }
-          });
-        });
-
-        return response;
-      } catch (error) {
-        console.warn(`[BG] Failed to send rehighlight message: ${error.message}`);
-      }
-    }, 500);
+    setTimeout(() => {
+      chrome.tabs.sendMessage(tabId, { type: 'REHIGHLIGHT_TAB' }, response => {
+        const lastError = chrome.runtime.lastError;
+        if (lastError && 
+            !lastError.message.includes('receiving end does not exist') &&
+            !lastError.message.includes('context invalidated')) {
+          console.error('Error sending rehighlight message:', lastError);
+        }
+      });
+    }, 250);
   }
 });
 

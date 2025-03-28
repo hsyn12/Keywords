@@ -65,7 +65,8 @@ function highlightKeywords() {
       }
     }
 
-    let totalMatches = 0;
+    let keywordCounts = {}; // Object to store counts for each keyword
+    keywords.forEach(kw => keywordCounts[kw] = 0); // Initialize counts to 0
 
     // Process each text node
     textNodes.forEach(node => {
@@ -76,14 +77,21 @@ function highlightKeywords() {
       for (const keyword of keywords) {
         try {
           const regex = new RegExp(keyword, 'gi');
-          const matchResult = text.match(regex);
-          if (matchResult) {
+          let matchResult;
+          let processedText = '';
+          let lastIndex = 0;
+
+          while ((matchResult = regex.exec(text)) !== null) {
             matches = true;
-            totalMatches += matchResult.length;
-            text = text.replace(regex, match => 
-              `<mark class="keyword-highlight" style="background-color: ${highlightColor}">${match}</mark>`
-            );
+            keywordCounts[keyword]++; // Increment count for this specific keyword
+            processedText += text.substring(lastIndex, matchResult.index);
+            processedText += `<mark class="keyword-highlight" style="background-color: ${highlightColor}">${matchResult[0]}</mark>`;
+            lastIndex = regex.lastIndex;
           }
+          // Append the rest of the text after the last match (or the whole text if no match)
+          processedText += text.substring(lastIndex);
+          text = processedText; // Update text with highlights for this keyword
+
         } catch (e) {
           console.error('Invalid regex pattern:', keyword);
         }
@@ -91,15 +99,29 @@ function highlightKeywords() {
 
       // If we found matches, replace the text node with highlighted HTML
       if (matches) {
-        const span = document.createElement('span');
-        span.innerHTML = text;
-        node.parentNode.replaceChild(span, node);
-      }
+        // Create a temporary div to parse the HTML string
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = text; // text now contains the <mark> tags
+
+        // Create a document fragment to hold the new nodes
+        const fragment = document.createDocumentFragment();
+        while (tempDiv.firstChild) {
+          fragment.appendChild(tempDiv.firstChild);
+        }
+
+        // Replace the original text node with the fragment
+        // Check if node.parentNode exists before replacing
+        if (node.parentNode) {
+          node.parentNode.replaceChild(fragment, node);
+        } else {
+          // Handle cases where the node might have been removed from the DOM
+          // console.warn("Parent node not found for text node:", node.textContent.substring(0, 50) + "...");
+        }
     });
 
-    // Send total matches count to background script with retry
+    // Send keyword counts object to background script with retry
     const MAX_RETRIES = 3;
-    const sendMatchCount = async (retryCount = 0) => {
+    const sendKeywordCounts = async (retryCount = 0) => {
       try {
         if (!chrome.runtime?.id) {
           throw new Error('Extension context invalidated');
@@ -107,30 +129,50 @@ function highlightKeywords() {
         
         await new Promise((resolve, reject) => {
           chrome.runtime.sendMessage(
-            { type: 'UPDATE_MATCH_COUNT', count: totalMatches },
+            { type: 'UPDATE_MATCH_COUNT', counts: keywordCounts }, // Send the object
             response => {
               if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-              } else {
+                // Check for specific errors that indicate the background script might not be ready
+                if (chrome.runtime.lastError.message.includes("Could not establish connection") ||
+                    chrome.runtime.lastError.message.includes("Receiving end does not exist")) {
+                   // console.warn(`[CONTENT] Connection error sending counts (retry ${retryCount}): ${chrome.runtime.lastError.message}`);
+                   reject(new Error("Connection error")); // Use a generic error for retry logic
+                } else {
+                   reject(chrome.runtime.lastError); // Reject other errors immediately
+                }
+              } else if (response && response.success) {
                 resolve(response);
+              } else {
+                // Handle cases where the background script reports an error
+                reject(new Error(response?.error || 'Background script reported failure'));
               }
             }
           );
         });
       } catch (error) {
-        if (retryCount < MAX_RETRIES && !error.message.includes('Extension context invalidated')) {
-          await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, retryCount)));
-          return sendMatchCount(retryCount + 1);
+        // Retry only on connection errors or specific background failures if desired
+        if (retryCount < MAX_RETRIES && (error.message === "Connection error" || error.message.includes("specific background error"))) {
+          await new Promise(resolve => setTimeout(resolve, 150 * Math.pow(2, retryCount))); // Slightly longer delay
+          return sendKeywordCounts(retryCount + 1);
         }
-        throw error;
+        // Don't retry if context is invalidated
+        if (error.message.includes('Extension context invalidated')) {
+           throw error; // Re-throw invalid context error
+        }
+        // Log other errors but potentially don't re-throw to avoid console spam if retries fail
+        console.error(`[CONTENT] Failed to send counts after ${retryCount} retries:`, error);
+        // Optionally throw error; // Decide if final failure should throw
+        return; // Exit gracefully after final retry fails
       }
     };
 
-    sendMatchCount().catch(error => {
+    sendKeywordCounts().catch(error => {
+      // Specific handling for invalid context error
       if (error.message.includes('Extension context invalidated')) {
-        console.warn('Extension context invalid - page reload may be required');
-      } else {
-        console.error('Failed to send match count:', error);
+        console.warn('[CONTENT] Extension context invalid - cannot send counts. Page reload may be required.');
+      // Error handling for other failures is now inside sendKeywordCounts
+      // } else {
+      //   console.error('[CONTENT] Final error sending keyword counts:', error);
       }
     });
 
