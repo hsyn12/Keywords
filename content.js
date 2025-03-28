@@ -117,6 +117,7 @@ function highlightKeywords() {
           // Handle cases where the node might have been removed from the DOM
           // console.warn("Parent node not found for text node:", node.textContent.substring(0, 50) + "...");
         }
+      } // <-- Add missing closing brace for 'if (matches)'
     });
 
     // Send keyword counts object to background script with retry

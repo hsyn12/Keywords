@@ -28,14 +28,58 @@
       max-height: 200px;
       overflow-y: auto;
       background: #fff;
+      border: 1px solid #ddd; /* Add a light border */
+      border-radius: 3px;
     }
     .keyword-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 5px;
-      background: #f2f2f2;
+      padding: 6px 8px; /* Adjust padding */
+      background: #fff; /* White background for items */
+      border-bottom: 1px solid #eee; /* Separator line */
       font-size: 14px;
+    }
+    .keyword-item:last-child {
+      border-bottom: none; /* No border for the last item */
+    }
+    .keyword-text {
+      flex-grow: 1; /* Allow text to take available space */
+      margin-right: 8px; /* Space before controls */
+      word-break: break-all; /* Prevent long words from overflowing */
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px; /* Space between count and button */
+      flex-shrink: 0; /* Prevent controls from shrinking */
+    }
+    .keyword-count {
+      font-size: 12px;
+      font-weight: bold;
+      color: #6c757d; /* Default grey color */
+      background-color: #e9ecef; /* Light background for the count */
+      padding: 2px 5px;
+      border-radius: 3px;
+      min-width: 18px; /* Ensure space even for single digits */
+      text-align: center;
+    }
+    .remove-keyword { /* Renamed from .remove-button for consistency */
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%; /* Make it circular */
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      line-height: 18px; /* Center the 'x' */
+      padding: 0;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .remove-keyword:hover {
+      background-color: #c82333;
     }
     .settings {
       border-top: 1px solid #ccc;
@@ -80,22 +124,7 @@
     button:hover {
       background-color: #0056b3;
     }
-    .remove-button {
-      background-color: #dc3545;
-    }
-    .remove-button:hover {
-      background-color: #c82333;
-    }
-    .remove-button:focus {
-      outline: none;
-    }
-    .remove-button:active {
-      transform: scale(0.95);
-    }
-    .remove-button:focus-visible {
-      outline: 2px solid #0056b3;
-      outline-offset: 2px;
-    }
+    /* .remove-button styles are now handled by .remove-keyword */
 
     label {
       font-size: 14px;
